@@ -1,31 +1,35 @@
 package ru.learnup.springboot;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
-
+import org.springframework.boot.autoconfigure.SpringBootApplication;import org.springframework.context.support.ClassPathXmlApplicationContext;
 import ru.learnup.springboot.service.EventService;
 
-@SpringBootApplication
+
 public class Application {
 
     public static void main(String[] args) {
-        ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
 
+        ClassPathXmlApplicationContext context =
+                new ClassPathXmlApplicationContext("applicationContext.xml");
         EventService eventService = context.getBean(EventService.class);
-        eventService.addPremiere("Руслан и Людмила", "Про Руслана и Людмилу","3+", 32);
-        eventService.addPremiere("Снегурочка","Про Снегурочку","0+",42);
-        eventService.addPremiere("Кармен", "про Кармен", "12+",52);
-        eventService.addPremiere("Евгений Онегин","Про Онегина", "3+", 42);
-        eventService.seeAllPremiere();
-        eventService.removePremiere("Евгений Онегин");
-        eventService.seeAllPremiere();
+        eventService.printAllPremiere();
+//        EventService eventService = context.getBean(EventService.class);
+//        eventService.removePremiere("Русалочка");
+//        eventService.buyTicket("Русалочка","Костя");
 
-        eventService.removePremiere("Золушка");
+//        System.out.println(eventService.findByTitle("Русалочка"));
+//        Premiere premiere = new Premiere("Три медведя","Про медведей",
+//                "0+",50);
+//        eventService.addPremiere(premiere);
 
-        eventService.viewPremiere("Снегурочка");
 
+//        System.out.println(eventService.findByTitle("Русалочка"));
+//        eventService.buyTicket(premiere,"Людмила");
+//        Premiere premiere = new Premiere("Королева цирка","Про цирк",
+//                "0+",50);
+//        eventService.addPremiere(premiere);
+
+
+        context.close();
 
     }
-
 }

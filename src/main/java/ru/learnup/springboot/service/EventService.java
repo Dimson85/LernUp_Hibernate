@@ -1,77 +1,84 @@
 package ru.learnup.springboot.service;
 
-import org.springframework.stereotype.Service;
-import ru.learnup.springboot.Premiere;
-import ru.learnup.springboot.Ticket;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.hibernate.Session;
+import org.springframework.stereotype.Component;
+import ru.learnup.springboot.dao.TicketDao;
+import ru.learnup.springboot.entity.Premiere;
+import ru.learnup.springboot.dao.PremiereDao;
+import ru.learnup.springboot.entity.Ticket;
+import ru.learnup.springboot.utils.HibernateSessionFactoryUtil;
 
-@Service
+import java.util.List;
+
+@Component
 public class EventService {
-    private Map<String, Premiere> listPremieres = new HashMap<>();
 
+    final PremiereDao premiereDao;
 
-    public void addPremiere(String title, String description, String ageLimit, int numberOfSeats) {
-        Premiere premiere = new Premiere(title, description, ageLimit, numberOfSeats);
-        listPremieres.put(premiere.getTitle(), premiere);
-        System.out.println("Премьера \"" + premiere.getTitle() + "\" успешно добавлена!");
+    final TicketDao ticketDao;
+
+    public EventService(PremiereDao premiereDao, TicketDao ticketDao) {
+        this.premiereDao = premiereDao;
+        this.ticketDao = ticketDao;
     }
 
 
-    public void removePremiere(String titlePremiere) {
-        if (listPremieres.containsKey(titlePremiere)) {
-            listPremieres.remove(titlePremiere);
-            System.out.println("\nПремьера \"" + titlePremiere + "\" удалена\n");
+    public void printAllPremiere() {
+        for (Premiere premiere : premiereDao.getAllPremiere()) {
+            System.out.println(premiere);
+        }
+    }
+
+    public Premiere findByTitle(String title) {
+        Premiere premiere = null;
+        List<Premiere> premiereList = premiereDao.findPremiereByTitle(title);
+        if (!premiereList.isEmpty()) {
+            for (Premiere pre : premiereList) {
+                premiere = pre;
+            }
         } else {
-            System.out.println("Премьера с названием: \"" + titlePremiere+  "\" не найдена!\n");
+            throw new IllegalArgumentException("Премьера с именем " + title + " не найдена.");
         }
+        return premiere;
     }
 
-        public void seeAllPremiere () {
-            System.out.println("Доступные премьеры: " + listPremieres.keySet());
-        }
+//    public List<Premiere> findByTitle(String title) {
+//        return premiereDao.findPremiereByTitle(title);
+//    }
+
+    public void addPremiere(Premiere premiere) {
+        premiereDao.addPremiere(premiere);
+    }
+
+    public void removePremiere(String title){
+        Premiere premiere = this.findByTitle(title);
+        premiereDao.deletePremiere(premiere);
+    }
 
 
-        public void viewPremiere (String titlePremiere) {
-            if (listPremieres.containsKey(titlePremiere)) {
-                System.out.println(listPremieres.get(titlePremiere));
-            } else {
-                System.out.println("Премьера с названием: \"" + titlePremiere+  "\" не найдена!\n");
-            }
-        }
+    public void buyTicket(String title, String buyerName) {
+        Premiere premiere = this.findByTitle(title);
+        Ticket ticket = new Ticket(premiere, buyerName);
+        ticket.setPremiere(premiere);
+        premiere.getTicketList().add(ticket);
+        premiereDao.buyTickets(premiere);
+    }
 
-        public void buyTicket (String titlePremiere){
-            Premiere premiere = null;
-            if (listPremieres.containsKey(titlePremiere)) {
-                premiere = listPremieres.get(titlePremiere);
-                if (premiere.getNumberOfSeats() == 0) {
-                    throw new IllegalArgumentException("Билеты на эту Премьеру закончились!");
-                } else {
-                    premiere.setNumberOfSeats(premiere.getNumberOfSeats() - 1);
-                    Ticket ticket = new Ticket();
-                    ticket.setTitlePremiere(premiere.getTitle());
-                    premiere.getSoldTickets().add(ticket);
-                    System.out.println("Билет куплен. Осталось билетов: " + premiere.getNumberOfSeats());
+    public void deleteTicketByBuyerName(String title, String buyerName) {
+        List<Ticket> ticketList = ticketDao.findTicketByBuyersName(buyerName);
+        if (!ticketList.isEmpty()) {
+            for (Ticket ticket : ticketList) {
+                if (ticket.getBuyersName().equalsIgnoreCase(buyerName)
+                        && ticket.getTitlePremiere().equalsIgnoreCase(title)) {
+                    ticketDao.deleteTicket(ticket);
                 }
-            } else {
-                System.out.println("Премьера с названием: \"" + titlePremiere+  "\" не найдена!\n");
             }
-        }
-
-
-        public void returnTicket (String titlePremiere, String buyersName){
-            Premiere premiere = null;
-            if (listPremieres.containsKey(titlePremiere)) {
-                premiere = listPremieres.get(titlePremiere);
-                for (Ticket ticket : premiere.getSoldTickets()) {
-                    if (ticket.getBuyersName().equals(buyersName)) {
-                        premiere.getSoldTickets().removeIf(ticketNm -> ticketNm.getBuyersName().contains(buyersName));
-                        return;
-                    }
-                }
-            } else {
-                throw new IllegalArgumentException("Билет с  Фамилией покупателя \"" + buyersName + "\" не найден.");
-            }
+        } else {
+            throw new IllegalArgumentException("Покупатель " + buyerName + " на премьеру " + title + " не найден.");
         }
     }
+}
+
+
+

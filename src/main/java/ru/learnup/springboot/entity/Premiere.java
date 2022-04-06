@@ -1,38 +1,48 @@
-package ru.learnup.springboot;
+package ru.learnup.springboot.entity;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
+import javax.persistence.*;
 import java.util.*;
 
-
-//@Scope("prototype")
+@Entity
+@Table(name = "premiere")
 public class Premiere {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @Column(name = "title")
     private String title;
+
+    @Column(name = "description")
     private String description;
+
+    @Column(name = "age_limit")
     private String ageLimit;
+
+    @Column(name = "number_seats")
     private int numberOfSeats;
-    private Set<Ticket> soldTickets;
+
+    @OneToMany(mappedBy = "premiere", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Ticket> ticketList;
+
+    public Premiere() {
+    }
 
     public Premiere(String title, String description, String ageLimit, int numberOfSeats) {
         this.title = title;
         this.description = description;
         this.ageLimit = ageLimit;
         this.numberOfSeats = numberOfSeats;
+        this.ticketList = new ArrayList<>();
     }
 
-    //    public Premiere(String title,String description,String ageLimit,int numberOfSeats) {
-//        Scanner scanner = new Scanner(System.in);
-//        System.out.println("Введите название премьеры:");
-//        this.title = scanner.nextLine();
-//        System.out.println("Введите описание: ");
-//        this.description = scanner.nextLine();
-//        System.out.println("Введите ограничение по возрасту:");
-//        this.ageLimit = scanner.nextLine();
-//        System.out.println("Введите количество мест:");
-//        this.numberOfSeats = scanner.nextInt();
+
+
+//        public void removeTicket(Ticket ticket) {
+//        ticketList.remove(ticket);
 //    }
+
 
     public String getTitle() {
         return title;
@@ -66,20 +76,21 @@ public class Premiere {
         this.numberOfSeats = numberOfSeats;
     }
 
+    public List<Ticket> getTicketList() {
+        return ticketList;
+    }
+
+    public void setTicketList(List<Ticket> ticketList) {
+        this.ticketList = ticketList;
+    }
+
     @Override
     public String toString() {
-        return "Премьера {" + title + '\'' +
+        return "Премьера {" + '\'' + title + '\'' +
                 ", Описание: '" + description + '\'' +
                 ", Возрастное ограничение: " + ageLimit +
                 ", Количество мест: " + numberOfSeats +
                 '}';
     }
 
-    public Set<Ticket> getSoldTickets() {
-        return soldTickets;
-    }
-
-    public void setSoldTickets(Set<Ticket> soldTickets) {
-        this.soldTickets = soldTickets;
-    }
 }
